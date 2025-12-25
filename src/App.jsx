@@ -6,15 +6,36 @@ const Portfolio = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [currentProject, setCurrentProject] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
+  const [visibleSections, setVisibleSections] = useState(new Set());
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-      setScrollY(window.scrollY);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observerCallback = (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setVisibleSections(prev => new Set([...prev, entry.target.id]));
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+    
+    const sections = document.querySelectorAll('[data-section]');
+    sections.forEach(section => observer.observe(section));
+
+    return () => observer.disconnect();
   }, []);
 
   const projects = [
@@ -109,7 +130,7 @@ const Portfolio = () => {
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-slate-900/95 backdrop-blur-sm shadow-lg' : 'bg-transparent'}`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
           <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-            Andrew
+            Andre.dev
           </div>
           
           {/* Desktop Menu */}
@@ -137,7 +158,7 @@ const Portfolio = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full bg-slate-900/98 backdrop-blur-lg border-t border-slate-700">
+          <div className="md:hidden absolute top-full left-0 w-full bg-slate-900/98 backdrop-blur-lg border-t border-slate-700 animate-slide-down">
             <div className="flex flex-col px-6 py-4 space-y-4">
               {['Home', 'Projects', 'Skills', 'About'].map((item) => (
                 <a
@@ -157,30 +178,28 @@ const Portfolio = () => {
         )}
       </nav>
 
-      {/* Hero Section with Parallax */}
+      {/* Hero Section */}
       <section 
         id="home" 
-        className="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-20 relative"
-        style={{
-          transform: `translateY(${scrollY * 0.3}px)`
-        }}
+        data-section="home"
+        className="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-20"
       >
-        <div className="max-w-4xl text-center animate-fade-in w-full">
+        <div className={`max-w-4xl text-center w-full transition-all duration-1000 ${visibleSections.has('home') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="mb-4 sm:mb-6">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-4 sm:mb-6 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center text-3xl sm:text-4xl font-bold shadow-2xl shadow-cyan-500/50">
+            <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-4 sm:mb-6 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center text-3xl sm:text-4xl font-bold shadow-2xl shadow-cyan-500/50 animate-float">
               AN
             </div>
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent px-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent px-4 animate-fade-in-up">
             Andre Nur Setyawan
           </h1>
-          <p className="text-xl sm:text-2xl text-cyan-400 mb-4 sm:mb-6">Application Support Developer</p>
-          <p className="text-base sm:text-xl text-slate-300 mb-6 sm:mb-8 max-w-2xl mx-auto px-4 leading-relaxed">
+          <p className="text-xl sm:text-2xl text-cyan-400 mb-4 sm:mb-6 animate-fade-in-up-delay-1">Application Support Developer</p>
+          <p className="text-base sm:text-xl text-slate-300 mb-6 sm:mb-8 max-w-2xl mx-auto px-4 leading-relaxed animate-fade-in-up-delay-2">
             2+ years experience in production support, Linux administration, and system monitoring. 
             Passionate about DevOps and System Administration.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 px-4">
-            <a href="mailto:andrewan653@gmail.com" className="flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 px-6 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg shadow-cyan-500/50">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 px-4 animate-fade-in-up-delay-3">
+            <a href="mailto:andrewan653@gmail.com" className="flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 px-6 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg shadow-cyan-500/50 hover:shadow-cyan-500/70">
               <Mail className="w-5 h-5" />
               Contact Me
             </a>
@@ -189,7 +208,7 @@ const Portfolio = () => {
               GitHub
             </a>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center text-slate-400 text-sm sm:text-base px-4">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center text-slate-400 text-sm sm:text-base px-4 animate-fade-in-up-delay-4">
             <a href="tel:082136372567" className="flex items-center justify-center gap-2 hover:text-cyan-400 transition-colors">
               <Phone className="w-4 h-4" />
               0821-3637-2567
@@ -205,20 +224,18 @@ const Portfolio = () => {
         </div>
       </section>
 
-      {/* Projects Carousel with Parallax */}
+      {/* Projects Carousel */}
       <section 
         id="projects" 
-        className="min-h-screen py-12 sm:py-20 px-4 sm:px-6 relative"
-        style={{
-          transform: `translateY(${scrollY * 0.1}px)`
-        }}
+        data-section="projects"
+        className="min-h-screen py-12 sm:py-20 px-4 sm:px-6"
       >
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-8 sm:mb-12 text-center bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent px-4">
+          <h2 className={`text-3xl sm:text-4xl font-bold mb-8 sm:mb-12 text-center bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent px-4 transition-all duration-1000 ${visibleSections.has('projects') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             Featured Projects
           </h2>
-          <div className="relative">
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-8 shadow-2xl border border-slate-700">
+          <div className={`relative transition-all duration-1000 delay-300 ${visibleSections.has('projects') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-8 shadow-2xl border border-slate-700 hover:border-cyan-500/50 transition-all duration-300">
               <div className="flex flex-col sm:flex-row justify-between items-start mb-4 sm:mb-6 gap-3">
                 <div className="w-full sm:w-auto">
                   <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 text-cyan-400 leading-tight">{projects[currentProject].title}</h3>
@@ -232,7 +249,7 @@ const Portfolio = () => {
                 <h4 className="text-base sm:text-lg font-semibold mb-3 text-cyan-400">Key Achievements:</h4>
                 <ul className="space-y-2">
                   {projects[currentProject].highlights.map((highlight, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm sm:text-base text-slate-300">
+                    <li key={idx} className="flex items-start gap-2 text-sm sm:text-base text-slate-300 animate-slide-in" style={{animationDelay: `${idx * 100}ms`}}>
                       <span className="text-cyan-400 mt-1 flex-shrink-0">▹</span>
                       <span>{highlight}</span>
                     </li>
@@ -241,7 +258,7 @@ const Portfolio = () => {
               </div>
               <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
                 {projects[currentProject].tech.map((tech, idx) => (
-                  <span key={idx} className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-xs sm:text-sm border border-cyan-500/30">
+                  <span key={idx} className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-xs sm:text-sm border border-cyan-500/30 hover:bg-cyan-500/30 transition-all duration-300 animate-scale-in" style={{animationDelay: `${idx * 50}ms`}}>
                     {tech}
                   </span>
                 ))}
@@ -268,26 +285,22 @@ const Portfolio = () => {
         </div>
       </section>
 
-      {/* Skills Section with Parallax */}
+      {/* Skills Section */}
       <section 
         id="skills" 
-        className="min-h-screen py-12 sm:py-20 px-4 sm:px-6 bg-slate-900/50 relative"
-        style={{
-          transform: `translateY(${scrollY * 0.05}px)`
-        }}
+        data-section="skills"
+        className="min-h-screen py-12 sm:py-20 px-4 sm:px-6 bg-slate-900/50"
       >
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-8 sm:mb-12 text-center bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent px-4">
+          <h2 className={`text-3xl sm:text-4xl font-bold mb-8 sm:mb-12 text-center bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent px-4 transition-all duration-1000 ${visibleSections.has('skills') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             Technical Skills
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
             {skills.map((skill, idx) => (
               <div 
                 key={idx} 
-                className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-slate-700 hover:border-cyan-500/50 transition-all duration-300 transform hover:scale-105"
-                style={{
-                  transform: `translateY(${scrollY * 0.02 * (idx + 1)}px)`
-                }}
+                className={`bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-slate-700 hover:border-cyan-500/50 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/20 ${visibleSections.has('skills') ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}
+                style={{transitionDelay: `${idx * 150}ms`}}
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="text-cyan-400">{skill.icon}</div>
@@ -295,7 +308,7 @@ const Portfolio = () => {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {skill.items.map((item, i) => (
-                    <span key={i} className="px-3 py-1 bg-slate-700 text-slate-300 rounded-lg text-xs sm:text-sm">
+                    <span key={i} className="px-3 py-1 bg-slate-700 text-slate-300 rounded-lg text-xs sm:text-sm hover:bg-slate-600 transition-all duration-300">
                       {item}
                     </span>
                   ))}
@@ -303,14 +316,14 @@ const Portfolio = () => {
               </div>
             ))}
           </div>
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-slate-700">
+          <div className={`bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-slate-700 transition-all duration-1000 delay-700 ${visibleSections.has('skills') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
               <Award className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
               <h3 className="text-xl sm:text-2xl font-semibold text-cyan-400">Certifications</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {certificates.map((cert, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 sm:p-4 bg-slate-700/30 rounded-lg">
+                <div key={idx} className="flex items-start gap-3 p-3 sm:p-4 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-all duration-300 animate-fade-in" style={{animationDelay: `${idx * 100}ms`}}>
                   <Award className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 mt-1 flex-shrink-0" />
                   <div>
                     <p className="font-semibold text-slate-200 text-sm sm:text-base">{cert.name}</p>
@@ -323,19 +336,17 @@ const Portfolio = () => {
         </div>
       </section>
 
-      {/* About Section with Parallax */}
+      {/* About Section */}
       <section 
         id="about" 
-        className="min-h-screen py-12 sm:py-20 px-4 sm:px-6 relative"
-        style={{
-          transform: `translateY(${scrollY * 0.03}px)`
-        }}
+        data-section="about"
+        className="min-h-screen py-12 sm:py-20 px-4 sm:px-6"
       >
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-8 sm:mb-12 text-center bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent px-4">
+          <h2 className={`text-3xl sm:text-4xl font-bold mb-8 sm:mb-12 text-center bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent px-4 transition-all duration-1000 ${visibleSections.has('about') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             About Me
           </h2>
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-700 mb-6 sm:mb-8">
+          <div className={`bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-700 mb-6 sm:mb-8 transition-all duration-1000 delay-300 ${visibleSections.has('about') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <p className="text-base sm:text-lg text-slate-300 mb-4 sm:mb-6 leading-relaxed">
               I'm an Application Support Developer with 2+ years of hands-on experience supporting production environments. 
               My expertise spans Linux administration, monitoring tools, ticket management systems, and database operations.
@@ -351,7 +362,7 @@ const Portfolio = () => {
               <span className="text-xl sm:text-2xl">"</span>
             </div>
           </div>
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-700">
+          <div className={`bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-700 transition-all duration-1000 delay-500 ${visibleSections.has('about') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className="flex items-center gap-3 mb-4">
               <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
               <h3 className="text-xl sm:text-2xl font-semibold text-cyan-400">Education</h3>
@@ -371,28 +382,105 @@ const Portfolio = () => {
       {/* Footer */}
       <footer className="py-6 sm:py-8 px-4 sm:px-6 border-t border-slate-800">
         <div className="max-w-6xl mx-auto text-center text-slate-400">
-          <p className="mb-2 text-sm sm:text-base">© 2024 Andre Nur Setyawan.</p>
-          <p className="text-xs sm:text-sm">Wish Me Luck</p>
+          <p className="mb-2 text-sm sm:text-base">© 2024 Andre Nur Setyawan. Built with React & Tailwind CSS</p>
+          <p className="text-xs sm:text-sm">Available for opportunities in System Administration & DevOps</p>
         </div>
       </footer>
 
       <style>{`
-        @keyframes fade-in {
+        @keyframes fade-in-up {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(30px);
           }
           to {
             opacity: 1;
             transform: translateY(0);
           }
         }
-        .animate-fade-in {
-          animation: fade-in 1s ease-out;
+
+        @keyframes slide-down {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
+
+        @keyframes slide-in {
+          from {
+            opacity: 0;
+            transform: translateX(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.8);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+
+        .animate-fade-in-up {
+          animation: fade-in-up 1s ease-out;
+        }
+
+        .animate-fade-in-up-delay-1 {
+          animation: fade-in-up 1s ease-out 0.2s both;
+        }
+
+        .animate-fade-in-up-delay-2 {
+          animation: fade-in-up 1s ease-out 0.4s both;
+        }
+
+        .animate-fade-in-up-delay-3 {
+          animation: fade-in-up 1s ease-out 0.6s both;
+        }
+
+        .animate-fade-in-up-delay-4 {
+          animation: fade-in-up 1s ease-out 0.8s both;
+        }
+
+        .animate-slide-down {
+          animation: slide-down 0.3s ease-out;
+        }
+
+        .animate-slide-in {
+          animation: slide-in 0.5s ease-out both;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.4s ease-out both;
+        }
+
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+
         html {
           scroll-behavior: smooth;
         }
+        
         body {
           overflow-x: hidden;
         }
